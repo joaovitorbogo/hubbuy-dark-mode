@@ -6,12 +6,16 @@
   "type": "module",
   "scripts": {
     "fetch": "node scripts/fetch-css.mjs",
+    "measure": "node scripts/measure-bg-images.mjs",
     "build": "node scripts/gen.mjs",
+    "theme": "npm run fetch && npm run measure && npm run build && npm run check",
+    "check": "node scripts/check.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "theme": "npm run fetch && npm run build"
+    "store": "node scripts/store-assets.mjs"
   },
   "devDependencies": {
-    "postcss": "^8.4.47"
+    "postcss": "^8.4.47",
+    "puppeteer-core": "^23.11.1"
   },
   "license": "MIT"
 }

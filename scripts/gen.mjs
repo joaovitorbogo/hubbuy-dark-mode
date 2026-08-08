@@ -272,7 +272,48 @@ function scopeSelector(sel) {
   }).join(',');
 }
 
+/* ---------- superficies com imagem de fundo clara ----------
+ *
+ * Fundo desenhado em PNG/WebP nao e cor: o remapeamento nao alcanca. O
+ * ".guide-process-wrapper" do hubbuy, por exemplo, usa um step-bg.png de
+ * luminancia 0.96 -- continua um bloco branco no tema escuro, e o texto (que
+ * clareamos) desaparece em cima dele.
+ *
+ * Em vez de trocar a arte por uma cor chapada, sobrepomos um veu escuro como
+ * primeira camada de background-image. A ilustracao continua la, so que
+ * legivel. So entram imagens medidas como claras E seletores que tem regras
+ * descendentes no mesmo arquivo -- ou seja, containers que abrigam conteudo,
+ * nao elementos que SAO a ilustracao (mascotes, selos de idioma, cupons).
+ */
+const LUMA_FILE = path.join(ROOT, '.cache', 'bg-luminance.json');
+const LUMA = fs.existsSync(LUMA_FILE)
+  ? JSON.parse(fs.readFileSync(LUMA_FILE, 'utf8'))
+  : {};
+if (!Object.keys(LUMA).length) {
+  console.warn('aviso: .cache/bg-luminance.json ausente — imagens de fundo claras');
+  console.warn('       nao serao tratadas. Rode: node scripts/measure-bg-images.mjs');
+}
+const LIGHT_IMG_MIN = 0.62;
+const scrimmed = [];
+
+const stripScope = (s) => s.replace(/\[data-v-[^\]]+\]/g, '').replace(/\s+/g, ' ').trim();
+
+/** Veu proporcional: quanto mais clara a arte, mais denso. */
+function scrimFor(luma) {
+  const a = Math.min(0.9, Math.max(0.6, 0.6 + (luma - LIGHT_IMG_MIN) * 0.78));
+  return `rgba(14,15,17,${a.toFixed(3)})`;
+}
+
 function processRoot(root, file) {
+  // Todos os seletores do arquivo, sem os atributos de escopo do Vue, para
+  // saber quais sao containers (tem descendentes estilizados).
+  const allSelectors = [];
+  root.walkRules(r => splitSelectors(r.selector).forEach(s => allSelectors.push(stripScope(s))));
+  const isContainer = (sel) => {
+    const base = stripScope(sel);
+    return allSelectors.some(s => s !== base && s.startsWith(base + ' '));
+  };
+
   const walk = (container, prefix) => {
     container.each(node => {
       if (node.type === 'atrule') {
@@ -290,8 +331,24 @@ function processRoot(root, file) {
       const sel = node.selector.replace(/\s+/g, ' ').trim();
       if (!sel || SELECTOR_DENY.test(sel)) return;
       const decls = [];
+      let scrim = null;
       node.each(d => {
         if (d.type !== 'decl') return;
+
+        // Superficie com arte clara de fundo: guarda o veu para emitir depois.
+        if ((d.prop === 'background' || d.prop === 'background-image') && /url\(/i.test(d.value)) {
+          const urls = [...d.value.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/gi)].map(m => m[1]);
+          const hasGradient = /gradient\(/i.test(d.value);
+          if (urls.length === 1 && !hasGradient) {
+            const luma = LUMA[urls[0].replace(/^\.\//, '')];
+            if (typeof luma === 'number' && luma > LIGHT_IMG_MIN && isContainer(sel)) {
+              const abs = urls[0].replace(/^\.\//, ASSET_BASE);
+              scrim = `background-image:linear-gradient(${scrimFor(luma)},${scrimFor(luma)}),url(${abs}) !important`;
+              scrimmed.push(`${stripScope(sel)}  (${luma.toFixed(2)})  ${urls[0].replace(/^\.\//, '')}`);
+            }
+          }
+        }
+
         let role = roleFor(d.prop);
         if (role === 'var') {
           role = roleForVar(d.prop);
@@ -314,6 +371,9 @@ function processRoot(root, file) {
         decls.push(`${d.prop}:${nv}${d.important ? '' : ''} !important`);
         declCount++;
       });
+      // O veu vai por ultimo: background-image depois do shorthand background
+      // sobrescreve so a camada de imagem, preservando cor, posicao e size.
+      if (scrim) { decls.push(scrim); declCount++; }
       if (!decls.length) return;
       const body = decls.join(';');
       const scoped = scopeSelector(sel);
@@ -354,6 +414,11 @@ const header = `/* hubbuy dark mode - camada gerada
 `;
 
 fs.writeFileSync(OUT, header + chunks.join('\n'));
+if (scrimmed.length) {
+  console.log(`\nsuperficies com arte clara que receberam veu (${scrimmed.length}):`);
+  [...new Set(scrimmed)].sort().forEach(s => console.log('  ' + s));
+  console.log('');
+}
 console.log(`arquivos: ${files.length} (falhas: ${skippedFiles})`);
 console.log(`regras: ${ruleCount} | declaracoes: ${declCount}`);
 console.log(`saida: ${path.relative(ROOT, OUT)} (${(fs.statSync(OUT).size / 1024).toFixed(0)} KB)`);

@@ -1,10 +1,17 @@
 'use strict';
 
-const DEFAULTS = { enabled: true, followSystem: false, dimMedia: false };
+const DEFAULTS = {
+  enabled: true,
+  followSystem: false,
+  dimMedia: true,
+  hideBanner: false,
+};
 const KEYS = Object.keys(DEFAULTS);
 
 const el = Object.fromEntries(KEYS.map((k) => [k, document.getElementById(k)]));
 const statusEl = document.getElementById('status');
+// Só o primeiro grupo depende do tema estar ligado; o segundo (ocultar banner)
+// funciona sozinho e por isso nunca é esmaecido.
 const groupEl = document.querySelector('.group');
 const scopeEl = document.getElementById('scope');
 

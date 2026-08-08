@@ -44,8 +44,10 @@ O que ela faz
   parecendo um card sobre a página.
 • Liga e desliga em um clique, sem recarregar a página.
 • Pode seguir o tema do Windows: claro de dia, escuro de noite.
-• Suaviza banners muito claros, se você quiser. Passe o mouse e a imagem volta
+• Suaviza banners muito claros (já vem ligado). Passe o mouse e a imagem volta
   ao normal.
+• Esconde a faixa promocional do topo, se você quiser — e isso funciona mesmo
+  com o tema escuro desligado.
 
 Como funciona
 
@@ -71,8 +73,9 @@ Ferramentas de desenvolvedor → não. Use **Funcionalidade e interface do usuá
 
 Campo obrigatório no painel da loja. Sugestões:
 
-- **storage** — "Guarda as três preferências do popup (modo escuro ligado,
-  seguir o tema do sistema, suavizar imagens) no perfil do usuário."
+- **storage** — "Guarda as quatro preferências do popup (modo escuro, seguir o
+  tema do sistema, suavizar imagens, ocultar o banner do topo) no perfil do
+  usuário."
 - **activeTab** — "Usada só quando o popup é aberto, para avisar que a aba atual
   não é do hubbuy.com. Nenhum conteúdo da página é lido."
 - **Acesso ao host (hubbuy.com / hubbuy.app)** — "Necessário para injetar a

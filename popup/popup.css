@@ -129,6 +129,11 @@ body {
   pointer-events: none;
 }
 
+/* Ocultar o banner independe do tema, entao nunca fica esmaecido. */
+.group--standalone {
+  margin-top: 10px;
+}
+
 /* ---------- rodape ---------- */
 
 .foot {

@@ -228,7 +228,8 @@ html.hbb-dark .main-footer-layout {
  * para recolorir as partes por CSS. A metade "BUY" e quase preta e some no
  * fundo escuro. Inverter e girar a matiz devolve o texto em cinza claro e
  * mantem o laranja da marca praticamente igual -- so branquear (brightness(0)
- * invert(1)) resolveria a legibilidade, mas jogaria a cor fora. */
+ * invert(1)) resolveria a legibilidade, mas jogaria a cor fora.
+ *
  * Duas exclusoes importantes: o rodape usa logo_white.svg (ja claro, inverter
  * o apagaria) e o .qr-center-icon fica no meio de um QR code que continua
  * branco, entao ali o logo escuro e o correto. */
@@ -266,23 +267,39 @@ html.hbb-dark .card-wrapper {
 }
 
 /* ------------------------------------------------------------------ *
- * 6. Suavizacao de imagens (opcional, classe hbb-dim)
+ * 6. Ocultar o banner promocional do topo (opcional, classe hbb-nobanner)
+ *
+ * E a faixa de 70px no alto da pagina, um WebP promocional inteiro. Como e
+ * imagem, nenhum tratamento de cor alcanca: continua sendo o ponto mais claro
+ * da tela. Esta regra NAO depende de hbb-dark de proposito -- quem quiser
+ * esconder o banner sem usar o tema escuro tambem consegue.
+ * ------------------------------------------------------------------ */
+
+html.hbb-nobanner .activity-img-wrapper {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * 7. Suavizacao de imagens (opcional, classe hbb-dim)
  *
  * Banners promocionais brancos continuam ofuscando mesmo com a
  * interface escura. Ligado pelo popup; nao mexe em logos nem em fotos
  * sob o cursor, para nao atrapalhar a avaliacao do produto.
  * ------------------------------------------------------------------ */
 
-html.hbb-dark.hbb-dim img,
+/* Logos ficam de fora: eles ja tem um filter proprio (secao 5) e filter nao
+   acumula entre regras -- a ultima simplesmente vence. Sem esta excecao,
+   suavizar imagens desfazia a correcao do logo e o "BUY" sumia de novo. */
+html.hbb-dark.hbb-dim img:not([src*="logo" i]),
 html.hbb-dark.hbb-dim video,
 html.hbb-dark.hbb-dim .el-carousel__item {
   filter: brightness(0.82) contrast(1.04);
   transition: filter 0.18s ease;
 }
 
-html.hbb-dark.hbb-dim img:hover,
+html.hbb-dark.hbb-dim img:not([src*="logo" i]):hover,
 html.hbb-dark.hbb-dim .el-carousel__item:hover,
-html.hbb-dark.hbb-dim .goods-card:hover img,
-html.hbb-dark.hbb-dim .product-card:hover img {
+html.hbb-dark.hbb-dim .goods-card:hover img:not([src*="logo" i]),
+html.hbb-dark.hbb-dim .product-card:hover img:not([src*="logo" i]) {
   filter: none;
 }

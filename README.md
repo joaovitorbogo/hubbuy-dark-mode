@@ -15,11 +15,12 @@ página inicial, produtos, carrinho e painel de pedidos.
 
 O ícone da extensão abre um popup com três controles:
 
-| Controle | O que faz |
-| --- | --- |
-| **Modo escuro** | Liga e desliga na hora, sem recarregar a página. |
-| **Seguir o tema do sistema** | Fica claro quando o Windows está no modo claro. |
-| **Suavizar imagens** | Reduz o brilho de banners; volta ao normal ao passar o mouse. |
+| Controle | Padrão | O que faz |
+| --- | --- | --- |
+| **Modo escuro** | ligado | Liga e desliga na hora, sem recarregar a página. |
+| **Seguir o tema do sistema** | desligado | Fica claro quando o Windows está no modo claro. |
+| **Suavizar imagens** | ligado | Reduz o brilho de banners; volta ao normal ao passar o mouse. |
+| **Ocultar banner do topo** | desligado | Remove a faixa promocional acima do menu. Funciona mesmo com o tema desligado. |
 
 As preferências ficam em `chrome.storage.sync`, então acompanham o seu perfil do Chrome.
 
@@ -43,6 +44,12 @@ remapeia apenas os valores de cor, decidindo o tratamento pela propriedade:
 - **sombra** — sombras claras não existem no escuro, então viram pretas.
 - **acentos** — o laranja da marca (`#ff5a1f`), verdes e vermelhos semânticos
   sobrevivem. Acentos muito claros escurecem mais, senão o texto perde contraste.
+- **arte de fundo** — fundo desenhado em PNG/WebP não é cor, então nenhum
+  remapeamento alcança. `scripts/measure-bg-images.mjs` decodifica cada imagem
+  num canvas e mede a luminância; as claras que servem de superfície para texto
+  recebem um véu escuro por cima, preservando a ilustração. Sem isso o
+  `.guide-process-wrapper` (fundo de luminância 0,96) continuaria um bloco
+  branco com texto invisível.
 
 O resultado sai em `content/theme.generated.css`, com todo seletor prefixado por
 `html.hbb-dark`. É isso que permite o liga/desliga instantâneo: o CSS fica sempre
@@ -58,10 +65,12 @@ site atualizar:
 
 ```bash
 npm install
-npm run theme     # baixa o CSS atual e regera content/theme.generated.css
+npm run theme     # baixa o CSS atual, mede as imagens e regera o tema
+npm run check     # verificações estáticas (manifesto, CSS, regras-chave)
 ```
 
-`npm run icons` regera os PNGs do ícone.
+`npm run icons` regera os PNGs do ícone e `npm run store` refaz as imagens da
+Chrome Web Store a partir do site ao vivo.
 
 ## Estrutura
 
@@ -73,8 +82,11 @@ content/apply.js              liga/desliga a classe hbb-dark no <html>
 popup/                        interface do popup
 icons/                        16 / 32 / 48 / 128
 scripts/fetch-css.mjs         baixa os bundles do site
+scripts/measure-bg-images.mjs mede a luminância das imagens de fundo
 scripts/gen.mjs               gera o tema a partir deles
+scripts/check.mjs             verificações estáticas
 scripts/make-icons.mjs        gera os ícones
+scripts/store-assets.mjs      gera as imagens da loja
 store/                        imagens prontas para a Chrome Web Store
 ```
 
@@ -91,23 +103,37 @@ mesmo caminho resolveria contra a URL da página e quebraria a imagem — o gera
 converte essas URLs para root-relative.
 
 **Imagens não são recoloridas.** Banners e ilustrações são arte do site; mexer
-neles daria resultado pior que deixá-los. A opção "Suavizar imagens" existe
-justamente para quem achar os banners claros demais. A única exceção é o logo:
-ele é um `<img>` com PNG embutido e a metade "BUY" é quase preta, então leva um
-filtro para voltar a ser legível (o logo do rodapé, que já é branco, fica fora).
+neles daria resultado pior que deixá-los. "Suavizar imagens" (ligado por padrão)
+reduz o brilho, e "Ocultar banner do topo" resolve a faixa promocional, que é um
+WebP inteiro e por isso imune a qualquer tratamento de cor.
+
+A única exceção é o logo: é um `<img>` com PNG embutido e a metade "BUY" é quase
+preta, então leva um filtro para voltar a ser legível. O logo do rodapé
+(`logo_white.svg`) e o do centro do QR code ficam de fora — inverter esses
+pioraria. Note que `filter` não acumula entre regras: por isso a suavização de
+imagens exclui os logos explicitamente, senão desfaria essa correção.
 
 ## Verificação
 
-O tema foi conferido nas páginas reais com Chrome headless, medindo as cores
-computadas de cada elemento visível. Na página inicial e na de login não sobra
-nenhuma superfície clara nem texto escuro sobre fundo escuro.
+`npm run check` roda as verificações estáticas: todo arquivo do manifesto
+existe, os dois CSS parseiam, todo seletor está escopado em `html.hbb-*`, os
+comentários estão balanceados e as regras-chave continuam presentes. Esta última
+checagem existe por um motivo concreto — um comentário malformado já engoliu a
+regra do logo sem gerar erro nenhum.
+
+Além disso, o tema foi conferido nas páginas reais com Chrome headless, medindo
+as cores computadas de cada elemento visível. Na página inicial e na de login
+não sobra nenhuma superfície clara nem texto escuro sobre fundo escuro.
 
 As páginas de **produto** e de **pedidos** exigem login e não puderam ser
-renderizadas na verificação automática. Elas são cobertas pelo CSS gerado a
-partir dos próprios chunks dessas rotas (`order`, `dashboard`, `OrderList`,
-`OrderItem`, `OrderStats`, `ProductInfoCard`, `ProductListCard`,
-`ProductTableTd`, `GoodsBuySku`, `CartCard` e outros), mas não passaram por
-conferência visual.
+renderizadas. Elas são cobertas pelo CSS gerado a partir dos próprios chunks
+dessas rotas (`order`, `dashboard`, `OrderList`, `OrderItem`, `OrderStats`,
+`ProductInfoCard`, `ProductListCard`, `ProductTableTd`, `GoodsBuySku`,
+`CartCard` e outros), mas não passaram por conferência visual completa.
+
+O componente `.guide-process-wrapper`, que fica atrás de login, foi verificado
+montando o markup real junto com o chunk de CSS que o define — a alternativa a
+não verificar nada.
 
 ## Licença
 

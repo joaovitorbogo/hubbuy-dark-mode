@@ -9,7 +9,13 @@
 
   const ROOT_CLASS = 'hbb-dark';
   const DIM_CLASS = 'hbb-dim';
-  const DEFAULTS = { enabled: true, followSystem: false, dimMedia: false };
+  const NOBANNER_CLASS = 'hbb-nobanner';
+  const DEFAULTS = {
+    enabled: true,
+    followSystem: false,
+    dimMedia: true,      // os banners do hubbuy sao claros demais sem isso
+    hideBanner: false,
+  };
 
   function boot(html) {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -18,6 +24,7 @@
     // normal, aplicamos ja no document_start para evitar o flash branco. Se a
     // preferencia for outra, a correcao chega poucos milissegundos depois.
     html.classList.add(ROOT_CLASS);
+    if (DEFAULTS.dimMedia) html.classList.add(DIM_CLASS);
 
     let config = { ...DEFAULTS };
     let ready = false;
@@ -32,6 +39,9 @@
       applying = true;
       html.classList.toggle(ROOT_CLASS, on);
       html.classList.toggle(DIM_CLASS, on && config.dimMedia);
+      // Esconder o banner independe do tema: quem so quer se livrar da faixa
+      // promocional nao precisa ficar com o site escuro.
+      html.classList.toggle(NOBANNER_CLASS, config.hideBanner);
       applying = false;
     }
 
@@ -63,7 +73,11 @@
     // Sem este observer o tema simplesmente nao gruda nesta SPA.
     new MutationObserver(() => {
       if (applying || !ready) return;
-      if (html.classList.contains(ROOT_CLASS) !== isOn(config)) render();
+      const stale =
+        html.classList.contains(ROOT_CLASS) !== isOn(config) ||
+        html.classList.contains(DIM_CLASS) !== (isOn(config) && config.dimMedia) ||
+        html.classList.contains(NOBANNER_CLASS) !== !!config.hideBanner;
+      if (stale) render();
     }).observe(html, { attributes: true, attributeFilter: ['class'] });
   }
 
