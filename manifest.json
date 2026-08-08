@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Hubbuy Dark Mode",
+  "version": "1.0.0",
+  "description": "Modo escuro para o hubbuy.com: pagina inicial, produtos, carrinho e painel de pedidos.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Hubbuy Dark Mode",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": ["storage", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.hubbuy.com/*",
+        "*://hubbuy.com/*",
+        "*://*.hubbuy.app/*",
+        "*://hubbuy.app/*"
+      ],
+      "css": ["content/theme.generated.css", "content/theme-core.css"],
+      "js": ["content/apply.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ]
+}

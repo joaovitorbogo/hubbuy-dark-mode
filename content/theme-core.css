@@ -1,0 +1,288 @@
+/* hubbuy dark mode - camada base (escrita a mao)
+ *
+ * Carrega DEPOIS de theme.generated.css, entao vence os empates de
+ * especificidade e serve para ajuste fino. Tudo aqui e escopado em
+ * `html.hbb-dark`, que o content script liga/desliga no <html>.
+ */
+
+/* ------------------------------------------------------------------ *
+ * 1. Base da pagina
+ * ------------------------------------------------------------------ */
+
+html.hbb-dark {
+  color-scheme: dark;
+  background-color: #121314 !important;
+
+  /* Paleta da extensao, reutilizada nas regras abaixo. */
+  --hbb-bg: #121314;        /* fundo da pagina            */
+  --hbb-surface: #1f1f1f;   /* cards, header, modais      */
+  --hbb-surface-2: #26272a; /* camada elevada / hover     */
+  --hbb-line: #2d2f33;      /* divisorias                 */
+  --hbb-text: #e4e6e8;      /* texto principal            */
+  --hbb-text-dim: #9aa0a6;  /* texto secundario           */
+  --hbb-brand: #ff5a1f;     /* laranja da marca           */
+}
+
+html.hbb-dark body {
+  background-color: var(--hbb-bg) !important;
+  color: var(--hbb-text) !important;
+}
+
+/* O Nuxt monta tudo dentro destes dois; sem fundo explicito eles deixam
+   aparecer o branco do user-agent em telas curtas. */
+html.hbb-dark #__nuxt,
+html.hbb-dark #teleports {
+  background-color: transparent !important;
+  color: var(--hbb-text);
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. Cromo do navegador (scrollbar, selecao, autofill)
+ * ------------------------------------------------------------------ */
+
+html.hbb-dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html.hbb-dark ::-webkit-scrollbar-track {
+  background: #161719;
+}
+html.hbb-dark ::-webkit-scrollbar-thumb {
+  background: #3a3d42;
+  border-radius: 6px;
+  border: 2px solid #161719;
+}
+html.hbb-dark ::-webkit-scrollbar-thumb:hover {
+  background: #4e535a;
+}
+html.hbb-dark ::-webkit-scrollbar-corner {
+  background: #161719;
+}
+
+html.hbb-dark ::selection {
+  background: rgba(255, 90, 31, 0.32);
+  color: #fff;
+}
+
+html.hbb-dark ::placeholder {
+  color: #7d8288 !important;
+  opacity: 1;
+}
+
+/* O Chrome pinta o autofill de amarelo claro e ignora background-color. */
+html.hbb-dark input:-webkit-autofill,
+html.hbb-dark input:-webkit-autofill:hover,
+html.hbb-dark input:-webkit-autofill:focus,
+html.hbb-dark textarea:-webkit-autofill,
+html.hbb-dark select:-webkit-autofill {
+  -webkit-text-fill-color: var(--hbb-text) !important;
+  -webkit-box-shadow: 0 0 0 1000px #1f2124 inset !important;
+  caret-color: var(--hbb-text) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Rede de seguranca para estilos inline
+ *
+ * Boa parte do CSS do site foi tematizada a partir dos bundles, mas o
+ * Vue tambem escreve cor direto no atributo style em alguns pontos
+ * (skeletons, popovers posicionados por JS, graficos). Regras de
+ * stylesheet com !important vencem style inline sem !important, entao
+ * da para interceptar os casos mais comuns por seletor de atributo.
+ * ------------------------------------------------------------------ */
+
+html.hbb-dark [style*="background:#fff" i],
+html.hbb-dark [style*="background: #fff" i],
+html.hbb-dark [style*="background-color:#fff" i],
+html.hbb-dark [style*="background-color: #fff" i],
+html.hbb-dark [style*="background:white" i],
+html.hbb-dark [style*="background: white" i],
+html.hbb-dark [style*="background-color:white" i],
+html.hbb-dark [style*="background-color: white" i],
+html.hbb-dark [style*="rgb(255, 255, 255)" i],
+html.hbb-dark [style*="rgb(255,255,255)" i] {
+  background-color: var(--hbb-surface) !important;
+}
+
+html.hbb-dark [style*="color:#000" i],
+html.hbb-dark [style*="color: #000" i],
+html.hbb-dark [style*="color:#333" i],
+html.hbb-dark [style*="color: #333" i],
+html.hbb-dark [style*="color:rgb(0, 0, 0)" i],
+html.hbb-dark [style*="color:rgb(0,0,0)" i] {
+  color: var(--hbb-text) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Element Plus - pontas soltas
+ *
+ * A camada gerada cobre os componentes que estavam nos bundles. Estas
+ * regras cuidam de estados que o Element Plus resolve em runtime ou que
+ * dependem de variaveis que preferimos fixar.
+ * ------------------------------------------------------------------ */
+
+html.hbb-dark .el-popper,
+html.hbb-dark .el-dropdown__popper,
+html.hbb-dark .el-select__popper,
+html.hbb-dark .el-picker__popper,
+html.hbb-dark .el-message-box,
+html.hbb-dark .el-dialog,
+html.hbb-dark .el-drawer,
+html.hbb-dark .el-message,
+html.hbb-dark .el-notification {
+  background-color: var(--hbb-surface) !important;
+  border-color: var(--hbb-line) !important;
+  color: var(--hbb-text) !important;
+}
+
+/* A setinha do popper e desenhada com border/background proprios. */
+html.hbb-dark .el-popper__arrow::before,
+html.hbb-dark .el-popper .el-popper__arrow::before {
+  background-color: var(--hbb-surface) !important;
+  border-color: var(--hbb-line) !important;
+}
+
+html.hbb-dark .el-dropdown-menu__item:not(.is-disabled):hover,
+html.hbb-dark .el-select-dropdown__item:hover,
+html.hbb-dark .el-select-dropdown__item.hover {
+  background-color: var(--hbb-surface-2) !important;
+  color: var(--hbb-brand) !important;
+}
+
+html.hbb-dark .el-table th.el-table__cell,
+html.hbb-dark .el-table tr {
+  background-color: transparent !important;
+}
+html.hbb-dark .el-table,
+html.hbb-dark .el-table__inner-wrapper {
+  background-color: var(--hbb-surface) !important;
+  color: var(--hbb-text) !important;
+}
+html.hbb-dark .el-table td.el-table__cell,
+html.hbb-dark .el-table th.el-table__cell.is-leaf {
+  border-bottom-color: var(--hbb-line) !important;
+}
+html.hbb-dark .el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
+  background-color: var(--hbb-surface-2) !important;
+}
+/* A linha divisoria do el-table e um ::before de 1px, nao uma border. */
+html.hbb-dark .el-table::before,
+html.hbb-dark .el-table::after,
+html.hbb-dark .el-table__inner-wrapper::before {
+  background-color: var(--hbb-line) !important;
+}
+
+/* Campos de formulario: dar fundo direto no .el-input__wrapper parece
+ * tentador, mas o wrapper e opaco e fica POR CIMA do placeholder animado da
+ * busca do hero, que o hubbuy posiciona em absolute atras dele -- o texto e os
+ * icones do Taobao/1688/Xianyu somem. Mexer na variavel resolve os campos
+ * normais e preserva os wrappers que o site deixa transparentes de proposito.
+ */
+html.hbb-dark {
+  --el-fill-color-blank: #191a1c !important;  /* fundo padrao dos inputs */
+  --el-input-focus-border-color: var(--hbb-brand) !important;
+}
+
+html.hbb-dark .el-loading-mask {
+  background-color: rgba(18, 19, 20, 0.82) !important;
+}
+html.hbb-dark .el-overlay {
+  background-color: rgba(0, 0, 0, 0.66) !important;
+}
+
+/* Skeletons claros piscando em tela escura incomodam bastante. */
+html.hbb-dark .el-skeleton__item,
+html.hbb-dark .el-skeleton {
+  background: linear-gradient(90deg, #1c1d1f 25%, #26272a 37%, #1c1d1f 63%) !important;
+  background-size: 400% 100% !important;
+}
+
+html.hbb-dark .el-divider {
+  border-color: var(--hbb-line) !important;
+}
+html.hbb-dark .el-divider__text {
+  background-color: var(--hbb-bg) !important;
+  color: var(--hbb-text-dim) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * 5. Ajustes especificos do hubbuy
+ * ------------------------------------------------------------------ */
+
+/* Header fixo: sem fundo solido ele fica transparente sobre o conteudo. */
+html.hbb-dark .header-main-wrapper,
+html.hbb-dark .header-layout,
+html.hbb-dark .main-header-layout {
+  background-color: var(--hbb-surface) !important;
+  border-bottom: 1px solid var(--hbb-line) !important;
+}
+
+/* O rodape ja era escuro (#121212) no tema claro. Mantido, mas separado
+   do corpo da pagina para nao virar um bloco continuo sem limite. */
+html.hbb-dark .footer-wrapper,
+html.hbb-dark .main-footer-layout {
+  background-color: #0d0e0f !important;
+  border-top: 1px solid var(--hbb-line) !important;
+}
+
+/* O logo e um <img> apontando para um SVG que so embute um PNG, entao nao da
+ * para recolorir as partes por CSS. A metade "BUY" e quase preta e some no
+ * fundo escuro. Inverter e girar a matiz devolve o texto em cinza claro e
+ * mantem o laranja da marca praticamente igual -- so branquear (brightness(0)
+ * invert(1)) resolveria a legibilidade, mas jogaria a cor fora. */
+ * Duas exclusoes importantes: o rodape usa logo_white.svg (ja claro, inverter
+ * o apagaria) e o .qr-center-icon fica no meio de um QR code que continua
+ * branco, entao ali o logo escuro e o correto. */
+html.hbb-dark img[src*="logo" i]:not([src*="_white" i]):not(.qr-center-icon) {
+  filter: invert(1) hue-rotate(180deg) saturate(1.25);
+}
+
+/* Veu do carrossel: o Element Plus pinta com --el-color-white, que deixamos
+   intencionalmente em branco, entao aqui o clareamento vira escurecimento. */
+html.hbb-dark .el-carousel__mask {
+  background-color: #000 !important;
+}
+
+/* Barra lateral de ferramentas flutuante (chat, carrinho, topo). */
+html.hbb-dark .tool-item {
+  background-color: var(--hbb-surface) !important;
+  border-color: var(--hbb-line) !important;
+}
+
+/* Campo de busca do hero: fica sobre a imagem de fundo, precisa de
+   opacidade propria para o texto nao competir com o banner. */
+html.hbb-dark .search-input {
+  background-color: rgba(24, 25, 27, 0.94) !important;
+  border: 1px solid var(--hbb-line) !important;
+}
+
+/* Cards de produto e blocos de pedido: a borda substitui a sombra, que
+   praticamente some em fundo escuro. */
+html.hbb-dark .goods-card,
+html.hbb-dark .product-card,
+html.hbb-dark .order-item,
+html.hbb-dark .order-card,
+html.hbb-dark .card-wrapper {
+  border: 1px solid var(--hbb-line) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Suavizacao de imagens (opcional, classe hbb-dim)
+ *
+ * Banners promocionais brancos continuam ofuscando mesmo com a
+ * interface escura. Ligado pelo popup; nao mexe em logos nem em fotos
+ * sob o cursor, para nao atrapalhar a avaliacao do produto.
+ * ------------------------------------------------------------------ */
+
+html.hbb-dark.hbb-dim img,
+html.hbb-dark.hbb-dim video,
+html.hbb-dark.hbb-dim .el-carousel__item {
+  filter: brightness(0.82) contrast(1.04);
+  transition: filter 0.18s ease;
+}
+
+html.hbb-dark.hbb-dim img:hover,
+html.hbb-dark.hbb-dim .el-carousel__item:hover,
+html.hbb-dark.hbb-dim .goods-card:hover img,
+html.hbb-dark.hbb-dim .product-card:hover img {
+  filter: none;
+}
