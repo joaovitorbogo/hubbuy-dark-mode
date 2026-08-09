@@ -12,7 +12,21 @@
 | `promo-small-440x280.png` | 440×280 | Bloco promocional pequeno (opcional) |
 | `promo-marquee-1400x560.png` | 1400×560 | Bloco promocional marquee (opcional) |
 
-Máximo de 5 capturas. Use `screenshot-1` como primeira — é a que aparece maior.
+Use `screenshot-1` como primeira — é a que aparece maior na página da loja.
+
+### Requisitos que estas imagens já cumprem
+
+| Exigência da loja | Situação |
+| --- | --- |
+| Máximo de 5 capturas | 4 |
+| 1280×800 ou 640×400 | todas em 1280×800 |
+| PNG de 24 bits **sem alfa**, ou JPEG | PNG colorType 2, sem `tRNS` |
+
+O ponto que costuma reprovar submissão é o canal alfa: PNG de 32 bits é
+recusado. O Chrome descarta o alfa sozinho quando a página capturada é opaca,
+que é o caso aqui — mas isso é sorte, não garantia. `npm run check` verifica
+profundidade, colorType, ausência de `tRNS`, dimensões e a contagem de
+capturas, então uma peça nova fora do padrão aparece antes de você subir.
 
 ## Nome
 

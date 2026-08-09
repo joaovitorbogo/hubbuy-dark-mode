@@ -104,5 +104,52 @@ relUrls === 0
   ? pass('nenhuma url relativa no CSS gerado')
   : fail(`${relUrls} url(./...) no CSS gerado — deveriam ser root-relative`);
 
+/* 5. Imagens da loja: a Chrome Web Store recusa PNG com canal alfa.
+ *
+ * Exige 24 bits (colorType 2 = RGB) ou JPEG, em 1280x800 ou 640x400, e no
+ * maximo 5 capturas. O Chrome ja descarta o alfa quando a pagina e opaca, mas
+ * basta uma peca com fundo transparente para virar colorType 6 e a submissao
+ * ser rejeitada — sem aviso util. */
+console.log('\nimagens da loja');
+const STORE = path.join(ROOT, 'store');
+const TAMANHOS = {
+  'screenshot': [[1280, 800], [640, 400]],
+  'promo-small': [[440, 280]],
+  'promo-marquee': [[1400, 560]],
+};
+let screenshots = 0;
+for (const f of fs.readdirSync(STORE).filter(x => x.endsWith('.png')).sort()) {
+  const b = fs.readFileSync(path.join(STORE, f));
+  const w = b.readUInt32BE(16), h = b.readUInt32BE(20);
+  const depth = b[24], colorType = b[25];
+
+  // tRNS reintroduz transparencia mesmo em colorType 2.
+  let off = 8, temTrns = false;
+  while (off < b.length - 8) {
+    const len = b.readUInt32BE(off);
+    const tipo = b.toString('ascii', off + 4, off + 8);
+    if (tipo === 'tRNS') temTrns = true;
+    if (tipo === 'IEND') break;
+    off += 12 + len;
+  }
+
+  const chave = Object.keys(TAMANHOS).find(k => f.startsWith(k));
+  const okTamanho = chave ? TAMANHOS[chave].some(([tw, th]) => tw === w && th === h) : true;
+  if (f.startsWith('screenshot')) screenshots++;
+
+  const problemas = [];
+  if (colorType !== 2) problemas.push(`colorType ${colorType} (precisa ser 2, RGB sem alfa)`);
+  if (depth !== 8) problemas.push(`profundidade ${depth} (precisa ser 8)`);
+  if (temTrns) problemas.push('tem chunk tRNS (transparencia)');
+  if (!okTamanho) problemas.push(`${w}x${h} nao e um tamanho aceito`);
+
+  problemas.length
+    ? fail(`${f}: ${problemas.join('; ')}`)
+    : pass(`${f} — ${w}x${h}, 24 bits, sem alfa`);
+}
+screenshots >= 1 && screenshots <= 5
+  ? pass(`${screenshots} capturas (a loja aceita de 1 a 5)`)
+  : fail(`${screenshots} capturas — a loja aceita de 1 a 5`);
+
 console.log(failures ? `\n${failures} falha(s)` : '\ntudo certo');
 process.exit(failures ? 1 : 0);
