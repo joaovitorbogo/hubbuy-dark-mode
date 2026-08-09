@@ -85,15 +85,65 @@ Ferramentas de desenvolvedor → não. Use **Funcionalidade e interface do usuá
 
 ## Justificativa das permissões
 
-Campo obrigatório no painel da loja. Sugestões:
+Campos obrigatórios na aba **Práticas de privacidade** do painel. Um campo por
+permissão. Os textos abaixo são para colar e podem ser conferidos no código —
+cada permissão tem exatamente um ponto de uso.
 
-- **storage** — "Guarda as quatro preferências do popup (modo escuro, seguir o
-  tema do sistema, suavizar imagens, ocultar o banner do topo) no perfil do
-  usuário."
-- **activeTab** — "Usada só quando o popup é aberto, para avisar que a aba atual
-  não é do hubbuy.com. Nenhum conteúdo da página é lido."
-- **Acesso ao host (hubbuy.com / hubbuy.app)** — "Necessário para injetar a
-  folha de estilo do tema escuro nas páginas do hubbuy."
+### storage
+
+```
+A extensão guarda quatro preferências do usuário, todas booleanas: modo escuro
+ligado, seguir o tema do sistema, suavizar imagens e ocultar o banner do topo.
+São exatamente os quatro controles do popup.
+
+Uso chrome.storage.sync para que a escolha acompanhe o perfil do Chrome do
+usuário em vez de se perder a cada máquina ou reinstalação, e para que o
+content script leia a preferência já no document_start — sem isso a página
+apareceria clara por um instante antes de escurecer.
+
+Nenhum dado pessoal é armazenado. Não há histórico, identificador, conteúdo de
+página ou qualquer informação de navegação. Os pontos de uso são
+content/apply.js (leitura e chrome.storage.onChanged) e popup/popup.js (leitura
+e gravação quando o usuário mexe num controle).
+```
+
+### activeTab
+
+```
+Usada apenas dentro do popup, e apenas para ler o endereço da aba ativa no
+momento em que o usuário clica no ícone da extensão.
+
+A extensão só atua em hubbuy.com. Se o popup for aberto em outra página, os
+controles não produzem efeito visível, e sem aviso isso parece defeito. Com o
+endereço da aba, o popup compara só o nome do host e mostra a mensagem "Esta
+aba não é do hubbuy.com".
+
+É o único uso: uma chamada a chrome.tabs.query em popup/popup.js, da qual se lê
+apenas tab.url para extrair o hostname. Nenhum conteúdo da página é lido, nada
+é injetado por essa via e o endereço não é armazenado nem transmitido — ele
+existe só enquanto o popup está aberto.
+```
+
+### Acesso ao host (`*://*.hubbuy.com/*`, `*://*.hubbuy.app/*`)
+
+```
+É a função da extensão: aplicar um tema escuro nas páginas do hubbuy.
+
+O acesso é necessário para injetar duas folhas de estilo e um script pequeno em
+document_start. O script não lê nem modifica o conteúdo da página: ele apenas
+liga e desliga uma classe CSS no elemento <html>, o que permite alternar o tema
+sem recarregar. Precisa rodar em document_start para o tema já estar aplicado
+na primeira renderização, e precisa observar essa classe porque o site é uma
+SPA em Nuxt que reescreve o atributo class durante a hidratação.
+
+O escopo está limitado aos dois domínios do próprio hubbuy, que são os únicos
+que a extensão tematiza — hubbuy.com e hubbuy.app, o mesmo site. Não há acesso
+a nenhum outro site. all_frames está desligado, então nem iframes de terceiros
+dentro da página são alcançados.
+
+Nenhum dado sai do navegador. A extensão não faz requisições de rede, não
+carrega código remoto e não tem service worker.
+```
 
 ## Uso de código remoto
 
